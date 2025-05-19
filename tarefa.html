@@ -28,15 +28,14 @@
     }
 
     .container {
-  background-color: white;
-  padding: 40px;
-  border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  width: 100%;
-  max-width: 1200px;
-  margin: 40px auto;
-}
-
+      background-color: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 1200px;
+      margin: 40px auto;
+    }
 
     h1, h2 {
       text-align: center;
@@ -202,6 +201,7 @@
       <textarea id="descricao" placeholder="Descrição"></textarea>
       <input type="date" id="data" />
       <input type="url" id="link" placeholder="Link da atividade (opcional)" />
+      <input type="file" id="imagem" accept="image/*" />
       <button onclick="adicionarAtividade()">Adicionar Atividade</button>
     </div>
     <div id="lista-atividades">
@@ -259,6 +259,8 @@
       const descricao = document.getElementById('descricao').value.trim();
       const data = document.getElementById('data').value;
       const link = document.getElementById('link').value.trim();
+      const imagemInput = document.getElementById('imagem');
+      const imagem = imagemInput.files[0];
 
       if (!titulo || !descricao || !data) {
         alert('Preencha os campos obrigatórios!');
@@ -270,14 +272,31 @@
         return;
       }
 
-      const atividade = { titulo, descricao, data, link };
-      criarElementoAtividade(atividade);
-      salvarAtividade(atividade);
+      if (imagem) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const atividade = {
+            titulo,
+            descricao,
+            data,
+            link,
+            imagemBase64: e.target.result
+          };
+          criarElementoAtividade(atividade);
+          salvarAtividade(atividade);
+        };
+        reader.readAsDataURL(imagem);
+      } else {
+        const atividade = { titulo, descricao, data, link, imagemBase64: null };
+        criarElementoAtividade(atividade);
+        salvarAtividade(atividade);
+      }
 
       document.getElementById('titulo').value = '';
       document.getElementById('descricao').value = '';
       document.getElementById('data').value = '';
       document.getElementById('link').value = '';
+      document.getElementById('imagem').value = '';
     }
 
     function criarElementoAtividade(atividade) {
@@ -289,6 +308,10 @@
         ${atividade.descricao}<br>
         <small>Entrega: ${new Date(atividade.data).toLocaleDateString()}</small><br>
       `;
+
+      if (atividade.imagemBase64) {
+        conteudo += `<img src="${atividade.imagemBase64}" alt="Imagem da atividade" style="max-width:100%; border-radius:10px; margin-top:10px;"><br>`;
+      }
 
       if (atividade.link) {
         conteudo += `<a class="visualizar-link" href="#" onclick="abrirLink('${atividade.link}')">🔗 Visualizar Atividade</a>`;
